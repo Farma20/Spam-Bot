@@ -35,8 +35,7 @@ def helps(message):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    newUserList[message.chat.id] = []
-
+    newUserList[message.chat.id] = {}
 
 
 @bot.message_handler(commands=['enter'])
@@ -44,8 +43,8 @@ def enter(message):
     bot.send_message(message.chat.id, f'Здравствуй {message.from_user.username}!'
                                       f' Чтобы оставаться в чате и отправлять сообщения'
                                       f' тебе необходимо пройти проверку на робота')
-    user = NewUser(message.from_user.id, message.chat.id)
-    newUserList[message.chat.id].append(user)
+    user = NewUser(message.from_user.username, message.from_user.id, message.chat.id, 'button', bot)
+    newUserList[message.chat.id][message.from_user.id] = user
 
     # Паралельно запускаем таймер у каждого нового пользователя
     threading.Thread(target=user.timer).start()
