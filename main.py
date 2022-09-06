@@ -40,20 +40,35 @@ def start(message):
 
 @bot.message_handler(commands=['enter'])
 def enter(message):
-    bot.send_message(message.chat.id, f'Здравствуй {message.from_user.username}!'
-                                      f' Чтобы оставаться в чате и отправлять сообщения'
-                                      f' тебе необходимо пройти проверку на робота')
-    user = NewUser(message.from_user.username, message.from_user.id, message.chat.id, 'button', bot)
+    user = NewUser(message, 'button', bot)
     newUserList[message.chat.id][message.from_user.id] = user
 
     # Паралельно запускаем таймер у каждого нового пользователя
     threading.Thread(target=user.timer).start()
-
+    user.button_captcha()
 
 
 @bot.message_handler(commands=['getUsers'])
 def get_users(message):
     bot.send_message(message.chat.id, f'{newUserList}')
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def chek_captcha(call):
+    call_words = call.data.split()
+    user_id = call.from_user.id
+    chat_id = call.message.chat.id
+
+    if call_words[0] == 'cpt' and call_words[1] == str(user_id):
+
+        newUserList[chat_id][user_id].captcha_is_done()
+
+        bot.send_message(chat_id, f" Вы успешно прошли капчу, @{call.from_user.username}!"
+                                  f" Добро пожаловать в чат дольщиков.")
+
+        del newUserList[chat_id][user_id]
+
+
 
 
 bot.infinity_polling()
