@@ -3,7 +3,7 @@ from telebot import types
 
 
 class NewUser(object):
-    def __init__(self, message, type_captcha, bot):
+    def __init__(self, message, type_captcha, user_dict, bot):
         self.__userName = message.from_user.username
         self.__userID = message.from_user.id
         self.__chatID = message.chat.id
@@ -11,8 +11,10 @@ class NewUser(object):
         self.__time = 10
         self.__captcha_is_done = False
         self.__is_kick = False
+        self.user_dict = user_dict
         self.bot = bot
 
+    # геттеры
     def get_user_name(self):
         return self.__userName
 
@@ -22,9 +24,11 @@ class NewUser(object):
     def get_chat_id(self):
         return self.__chatID
 
+    # Функция смены значения прохождения капчи
     def captcha_is_done(self):
         self.__captcha_is_done = True
 
+    # Функция создания капчи-кнопки
     def button_captcha(self):
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton('Я не бот', callback_data=f'cpt {self.__userID}'))
@@ -33,18 +37,15 @@ class NewUser(object):
                                              f' В ином случае Вас автоматически удалят из чата'
                                              f' через {self.__time} секунд', reply_markup=markup)
 
+    # Таймер
     def timer(self):
         timing_start = time.time()
 
         while True:
             if self.__captcha_is_done:
-                self.bot.send_message(self.__chatID, 'Таймер отключен')
                 break
 
             if time.time() - timing_start >= self.__time:
-                self.bot.send_message(self.__chatID, f'Пользователь кикнут')
+                self.bot.kick_chat_member(self.__chatID, self.__userID)
                 break
-
-    def __del__(self):
-        self.bot.send_message(self.__chatID, f'Удален')
 
