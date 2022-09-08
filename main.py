@@ -1,4 +1,5 @@
 import os
+import time
 import telebot
 import threading
 from newUserClass import NewUser
@@ -19,30 +20,49 @@ bot = telebot.TeleBot(BOT_TOKEN)
 ConfigDict = {}
 
 
+# таймер для удаления сообщений
+def delete_message_timer(message):
+    timing_start = time.time()
+
+    while True:
+        if time.time() - timing_start >= 5:
+            bot.delete_message(message.chat.id, message.message_id)
+            break
+
+
 # Вывод доступных команд
 @bot.message_handler(commands=['help'])
 def helps(message):
-    bot.send_message(message.chat.id, 'Доступные команды для настройки бота:\n'
-                                      '/help - для вызова данного сообщения\n'
-                                      '/captcha — меняет тип капчи\n'
-                                      '/deleteEntryMessages — удалять сообщения о входе пользователей в чат\n'
-                                      '/attack — отключить SpamBOT\n'
-                                      '/noLinks — автоматически удалять сообщения со ссылками\n'
-                                      '/enter - эмитация входа пользователя\n'
-                                      '/getUsers - возвращает список новых пользователей\n'
-                                      '/start - для запуска бота')
+    user_info = bot.get_chat_member(message.chat.id, message.from_user.id)
+    status = user_info.status
+    if status in ['creator', 'administrator']:
+        bot.send_message(message.chat.id, 'Доступные команды для настройки бота:\n'
+                                          '/help - для вызова данного сообщения\n'
+                                          '/captcha — меняет тип капчи\n'
+                                          '/deleteEntryMessages — удалять сообщения о входе пользователей в чат\n'
+                                          '/attack — отключить SpamBOT\n'
+                                          '/links — автоматически удалять сообщения со ссылками\n'
+                                          '/enter - эмитация входа пользователя\n'
+                                          '/start - для запуска бота')
 
 
 # запуск бота
 @bot.message_handler(commands=['start'])
 def start(message):
     # Стартовые настройки
-    ConfigDict[message.chat.id] = {
-                                    'params': {'delEntMess': True,
-                                               'captcha': 'text',
-                                               'attack': True,
-                                               'links': True}
-    }
+    user_info = bot.get_chat_member(message.chat.id, message.from_user.id)
+    status = user_info.status
+    if status in ['creator', 'administrator']:
+        ConfigDict[message.chat.id] = {
+            'params': {'delEntMess': True,
+                       'captcha': 'button',
+                       'attack': True,
+                       'links': True}
+        }
+
+        bot.send_message(message.chat.id, 'Здравствуйте, данный бот-антиспам предназначен для предотвращения '
+                                          'присоединения в чат спам ботов. Чтобы посмотреть все возможные '
+                                          'команды этого бота введите команду /help')
 
 
 # Отлавливание входа нового пользователя
@@ -55,46 +75,55 @@ def enter(message):
 
         # Паралельно запускаем таймер у каждого нового пользователя
         threading.Thread(target=user.timer).start()
-        user.captcha()
+        threading.Thread(target=user.captcha).start()
 
 
 # Удаляет сообщения о входе пользователей
-@bot.message_handler(comamds=['deleteEntryMessages'])
+@bot.message_handler(commands=['deleteEntryMessages'])
 def delete_entry_messages(message):
-    if ConfigDict[message.chat.id]['params']['delEntMess']:
-        ConfigDict[message.chat.id]['params']['delEntMess'] = False
+    user_info = bot.get_chat_member(message.chat.id, message.from_user.id)
+    status = user_info.status
+    if status in ['creator', 'administrator']:
+        if ConfigDict[message.chat.id]['params']['delEntMess']:
+            ConfigDict[message.chat.id]['params']['delEntMess'] = False
 
-        bot.send_message(message.chat.id, 'Удаление сообщений о входе новых пользователей ОТКЛЮЧЕНО')
-    else:
-        ConfigDict[message.chat.id]['params']['delEntMess'] = True
+            bot.send_message(message.chat.id, 'Удаление сообщений о входе новых пользователей отключено')
+        else:
+            ConfigDict[message.chat.id]['params']['delEntMess'] = True
 
-        bot.send_message(message.chat.id, 'Удаление сообщений о входе новых пользователей ВКЛЮЧЕНО')
+            bot.send_message(message.chat.id, 'Удаление сообщений о входе новых пользователей включено')
 
 
 # Изменение параметров атаки бота
 @bot.message_handler(commands=['attack'])
 def attack(message):
-    if ConfigDict[message.chat.id]['params']['attack']:
-        ConfigDict[message.chat.id]['params']['attack'] = False
+    user_info = bot.get_chat_member(message.chat.id, message.from_user.id)
+    status = user_info.status
+    if status in ['creator', 'administrator']:
+        if ConfigDict[message.chat.id]['params']['attack']:
+            ConfigDict[message.chat.id]['params']['attack'] = False
 
-        bot.send_message(message.chat.id, 'Проверка новых пользователей ОТКЛЮЧЕНА')
-    else:
-        ConfigDict[message.chat.id]['params']['attack'] = True
+            bot.send_message(message.chat.id, 'Проверка новых пользователей отлючена')
+        else:
+            ConfigDict[message.chat.id]['params']['attack'] = True
 
-        bot.send_message(message.chat.id, 'Проверка новых пользователей ВКЛЮЧЕНА')
+            bot.send_message(message.chat.id, 'Проверка новых пользователей включена')
 
 
 # Изменение параметров удаления ссылок
 @bot.message_handler(commands=['links'])
 def links(message):
-    if ConfigDict[message.chat.id]['params']['links']:
-        ConfigDict[message.chat.id]['params']['links'] = False
+    user_info = bot.get_chat_member(message.chat.id, message.from_user.id)
+    status = user_info.status
+    if status in ['creator', 'administrator']:
+        if ConfigDict[message.chat.id]['params']['links']:
+            ConfigDict[message.chat.id]['params']['links'] = False
 
-        bot.send_message(message.chat.id, 'Удаление ссылок пользователей ОТКЛЮЧЕНА')
-    else:
-        ConfigDict[message.chat.id]['params']['links'] = True
+            bot.send_message(message.chat.id, 'Удаление ссылок пользователей отключена')
+        else:
+            ConfigDict[message.chat.id]['params']['links'] = True
 
-        bot.send_message(message.chat.id, 'Удаление ссылок пользователей ВКЛЮЧЕНА')
+            bot.send_message(message.chat.id, 'Удаление ссылок пользователей включена')
 
 
 # Вывод всех новых пользователей
@@ -106,13 +135,16 @@ def get_users(message):
 # Смена настроек капчи
 @bot.message_handler(commands=['captcha'])
 def set_captcha(message):
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    button1 = types.InlineKeyboardButton('Кнопка', callback_data='set-cpt button')
-    button2 = types.InlineKeyboardButton('Арифметический пример', callback_data='set-cpt math')
-    button3 = types.InlineKeyboardButton('Текст с изображения', callback_data='set-cpt text')
-    markup.add(button1, button2, button3)
+    user_info = bot.get_chat_member(message.chat.id, message.from_user.id)
+    status = user_info.status
+    if status in ['creator', 'administrator']:
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        button1 = types.InlineKeyboardButton('Кнопка', callback_data='set-cpt button')
+        button2 = types.InlineKeyboardButton('Арифметический пример', callback_data='set-cpt math')
+        button3 = types.InlineKeyboardButton('Текст с изображения', callback_data='set-cpt pic')
+        markup.add(button1, button2, button3)
 
-    bot.send_message(message.chat.id, 'Выберите тип капчи', reply_markup=markup)
+        bot.send_message(message.chat.id, 'Выберите тип капчи', reply_markup=markup)
 
 
 # Отлавливание капчи и смены ее настроек
@@ -126,15 +158,18 @@ def chek_captcha(call):
 
         ConfigDict[chat_id][user_id].captcha_is_done()
 
-        bot.send_message(chat_id, f" Вы успешно прошли капчу, @{call.from_user.username}!"
+        mess = bot.send_message(chat_id, f" Вы успешно прошли капчу, @{call.from_user.username}!"
                                   f" Добро пожаловать в чат дольщиков.")
 
+        bot.delete_message(chat_id, call.message.message_id)
+        threading.Thread(target=delete_message_timer(mess)).start()
         del ConfigDict[chat_id][user_id]
 
     if call_words[0] == 'set-cpt':
         ConfigDict[chat_id]['params']['captcha'] = call_words[1]
 
         bot.send_message(chat_id, 'Тип капчи изменен')
+        bot.delete_message(chat_id, call.message.message_id)
 
 
 # Запрет на отправку сообщений пользователям,
@@ -145,20 +180,24 @@ def delete_message(message):
     chat_id = message.chat.id
     message_id = message.message_id
 
-    # Проверка верности капчи (арифметика тест)
+    # Проверка верности капчи (арифметика\текст)
     # при ответе на сообщение бота
     if message.reply_to_message and user_id in ConfigDict[chat_id]:
         if ConfigDict[chat_id][user_id].get_captcha_answer() == message.text:
             ConfigDict[chat_id][user_id].captcha_is_done()
 
-            bot.send_message(chat_id, f" Вы успешно прошли капчу, @{message.from_user.username}!"
-                                      f" Добро пожаловать в чат дольщиков.")
+            mess = bot.send_message(chat_id, f" Вы успешно прошли капчу, @{message.from_user.username}!"
+                                             f" Добро пожаловать в чат дольщиков.")
 
+            bot.delete_message(chat_id, message.reply_to_message.message_id)
+            bot.delete_message(chat_id, message.message_id)
+            threading.Thread(target=delete_message_timer(mess)).start()
             del ConfigDict[chat_id][user_id]
 
         else:
-            bot.reply_to(message, 'Не верно. Попробуйте снова')
-
+            mess = bot.reply_to(message, 'Не верно. Попробуйте снова')
+            threading.Thread(target=delete_message_timer(message)).start()
+            threading.Thread(target=delete_message_timer(mess)).start()
 
     # Удаление сообщений пользователей, непрошедший проверку
     elif user_id in ConfigDict[chat_id]:

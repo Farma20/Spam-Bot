@@ -11,7 +11,7 @@ class NewUser(object):
         self.__userID = message.from_user.id
         self.__chatID = message.chat.id
         self.__type_captcha = type_captcha
-        self.__time = 20
+        self.__time = 60
         self.__captcha_is_done = False
         self.__is_kick = False
         self.__catha_answer = ''
@@ -43,8 +43,8 @@ class NewUser(object):
         elif self.__type_captcha == 'math':
             self.math_captcha()
 
-        elif self.__type_captcha == 'text':
-            self.text_captcha()
+        elif self.__type_captcha == 'pic':
+            self.pic_captcha()
 
     def button_captcha(self):
         markup = types.InlineKeyboardMarkup()
@@ -65,11 +65,11 @@ class NewUser(object):
                                              f' В ином случае Вас автоматически удалят из чата'
                                              f' через {self.__time} секунд')
 
-    def text_captcha(self):
+    def pic_captcha(self):
         image = ImageCaptcha(width=280, height=90)
-        captcha_text = ''.join(random.choice(string.digits) for i in range(6))
-        self.__catha_answer = captcha_text
-        data = image.generate(captcha_text)
+        captcha_pic = ''.join(random.choice(string.digits) for i in range(6))
+        self.__catha_answer = captcha_pic
+        data = image.generate(captcha_pic)
         self.bot.send_photo(self.__chatID, data, f'Здравствуйте @{self.__userName}, чтобы отправлять сообщения в чат Вам '
                                              f'необходимо доказать, что вы не робот, отправив в ответ на данное'
                                              f' сообщение текст, изображенный на картинке'
