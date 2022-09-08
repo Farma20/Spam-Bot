@@ -8,11 +8,11 @@ from captcha.image import ImageCaptcha
 class NewUser(object):
     def __init__(self, message, type_captcha, user_dict, bot):
         self.__userFirstName = message.from_user.first_name
-        self.__userSecondName = message.from_user.second_name
+        self.__userSecondName = message.from_user.last_name
         self.__userID = message.from_user.id
         self.__chatID = message.chat.id
         self.__type_captcha = type_captcha
-        self.__time = 60
+        self.__time = 20
         self.__captcha_is_done = False
         self.__is_kick = False
         self.__captcha_answer = ''
@@ -21,8 +21,14 @@ class NewUser(object):
         self.bot = bot
 
     # геттеры
-    def get_user_name(self):
-        return self.__userName
+    def get_user_first_name(self):
+        return self.__userFirstName
+
+    def get_user_second_name(self):
+        return self.__userSecondName
+
+    def get_captcha_mess(self):
+        return self.__captcha_message
 
     def get_user_id(self):
         return self.__userID
@@ -52,7 +58,8 @@ class NewUser(object):
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton('Я не бот', callback_data=f'cpt {self.__userID}'))
         self.__captcha_message = self.bot.send_message(self.__chatID, f'Здравствуйте '
-                                                                      f'{self.__userFirstName, self.__userSecondName},'
+                                                                      f'{self.__userFirstName} '
+                                                                      f'{self.__userSecondName},'
                                                                       f' чтобы отправлять сообщения в чат Вам '
                                                                       f'необходимо доказать, что вы не робот,'
                                                                       f' нажав на кнопку снизу.'
@@ -64,11 +71,12 @@ class NewUser(object):
         num2 = random.randint(1, 20)
         self.__captcha_answer = str(num1 + num2)
         self.__captcha_message = self.bot.send_message(self.__chatID, f'Здравствуйте '
-                                                                      f'{self.__userFirstName, self.__userSecondName},'
+                                                                      f'{self.__userFirstName} '
+                                                                      f'{self.__userSecondName},'
                                                                       f' чтобы отправлять сообщения в чат Вам '
                                                                       f'необходимо доказать, что вы не робот,'
-                                                                      f' отправив в чат ответ на данное'
-                                                                      f' сообщение решение следующего'
+                                                                      f' отправив в чат '
+                                                                      f'решение следующего'
                                                                       f' арифметического выражения:\n'
                                                                       f'{num1} + {num2} = ? \n'
                                                                       f' В ином случае Вас автоматически удалят из чата'
@@ -80,11 +88,12 @@ class NewUser(object):
         self.__captcha_answer = captcha_pic
         data = image.generate(captcha_pic)
         self.__captcha_message = self.bot.send_photo(self.__chatID, data, f'Здравствуйте'
-                                                                          f'{self.__userFirstName, self.__userSecondName},'
+                                                                          f'{self.__userFirstName} '
+                                                                          f'{self.__userSecondName},'
                                                                           f' чтобы отправлять сообщения в чат Вам '
                                                                           f'необходимо доказать, что вы не робот,'
-                                                                          f' отправив в чат ответ на данное'
-                                                                          f' сообщение текст, изображенный на картинке'
+                                                                          f' отправив цифры, изображеныей на картинке, '
+                                                                          f'в чат. Цифры нужно писать без пробелов.'
                                                                           f' В ином случае Вас автоматически'
                                                                           f' удалят из чата'
                                                                           f' через {self.__time} секунд')
@@ -98,7 +107,7 @@ class NewUser(object):
                 break
 
             if time.time() - timing_start >= self.__time:
-                self.bot.delete_message(self.__chatID, self.__captcha_message)
+                self.bot.delete_message(self.__chatID, self.__captcha_message.id)
                 self.bot.kick_chat_member(self.__chatID, self.__userID)
                 break
 
