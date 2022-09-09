@@ -107,7 +107,7 @@ class NewUser(object):
                 break
 
             if time.time() - timing_start >= self.__time:
+                self.user_dict[self.__chatID].pop(self.__userID)
                 self.bot.delete_message(self.__chatID, self.__captcha_message.id)
                 self.bot.kick_chat_member(self.__chatID, self.__userID)
                 break
-

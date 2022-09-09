@@ -39,13 +39,10 @@ def find_allowed_urls(urls_short, white_list):
 
 
 # Функция, подтверждающая статус админа или создателя
-def conform_status_user(message, bot):
+def confirmation_status_user(message, bot):
     user_info = bot.get_chat_member(message.chat.id, message.from_user.id)
     status = user_info.status
-    if status in ['creator', 'administrator']:
-        return True
-    else:
-        return False
+    return status in ['creator', 'administrator']
 
 
 # таймер для удаления сообщений
