@@ -290,7 +290,7 @@ def check_message(message):
     links_conform = find_allowed_urls(short_urls, data)
 
     # Удаление ссылок пользователей
-    if ConfigDict[message.chat.id]['params']['links'] and not links_conform:
+    if ConfigDict[message.chat.id]['params']['links'] and not links_conform and not user_status:
         if message.entities is not None:
             for entity in message.entities:
                 if entity.type in ["url", "text_link"]:
