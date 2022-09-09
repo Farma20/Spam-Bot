@@ -63,20 +63,20 @@ def start(message):
 
 
 # Отлавливание входа нового пользователя
-@bot.message_handler(commands=['enter'])
-def enter(message):
-    if message.chat.id not in ConfigDict:
-        return
-
-    bot.delete_message(message.chat.id, message.message_id)
-    if ConfigDict[message.chat.id]['params']['attack']:
-        captcha = ConfigDict[message.chat.id]['params']['captcha']
-        user = NewUser(message, captcha, ConfigDict, bot)
-        ConfigDict[message.chat.id][message.from_user.id] = user
-
-        # Паралельно запускаем таймер у каждого нового пользователя
-        threading.Thread(target=user.timer).start()
-        threading.Thread(target=user.captcha).start()
+# @bot.message_handler(commands=['enter'])
+# def enter(message):
+#     if message.chat.id not in ConfigDict:
+#         return
+#
+#     bot.delete_message(message.chat.id, message.message_id)
+#     if ConfigDict[message.chat.id]['params']['attack']:
+#         captcha = ConfigDict[message.chat.id]['params']['captcha']
+#         user = NewUser(message, captcha, ConfigDict, bot)
+#         ConfigDict[message.chat.id][message.from_user.id] = user
+#
+#         # Паралельно запускаем таймер у каждого нового пользователя
+#         threading.Thread(target=user.timer).start()
+#         threading.Thread(target=user.captcha).start()
 
 
 # Отлавливание нового пользователя
@@ -186,9 +186,9 @@ def no_links(message):
 
 
 # Вывод всех новых пользователей
-@bot.message_handler(commands=['getUsers'])
-def get_users(message):
-    bot.send_message(message.chat.id, f'{ConfigDict}')
+# @bot.message_handler(commands=['getUsers'])
+# def get_users(message):
+#     bot.send_message(message.chat.id, f'{ConfigDict}')
 
 
 # Смена настроек капчи

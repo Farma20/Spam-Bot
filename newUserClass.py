@@ -12,7 +12,7 @@ class NewUser(object):
         self.__userID = message.from_user.id
         self.__chatID = message.chat.id
         self.__type_captcha = type_captcha
-        self.__time = 20
+        self.__time = 60
         self.__captcha_is_done = False
         self.__is_kick = False
         self.__captcha_answer = ''
