@@ -35,6 +35,8 @@ def write_data_in_json(data, urls_short, json_path):
 
 # Функция, ищущая совпадения в url из сообщения с url из белого списка
 def find_allowed_urls(urls_short, white_list):
+    if len(urls_short) == 0:
+        return False
     return all(x in white_list['urls'] for x in urls_short)
 
 

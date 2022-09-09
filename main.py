@@ -228,8 +228,8 @@ def chek_captcha(call):
                                          f" Добро пожаловать в чат дольщиков.")
 
         bot.delete_message(chat_id, call.message.message_id)
-        threading.Thread(target=delete_message_timer(mess, bot)).start()
         ConfigDict[chat_id].pop(user_id)
+        threading.Thread(target=delete_message_timer(mess, bot)).start()
         return
 
     user_info = bot.get_chat_member(call.message.chat.id, call.from_user.id)
